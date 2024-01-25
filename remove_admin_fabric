@@ -1,0 +1,36 @@
+# Login to Power BI Service
+Login-PowerBIServiceAccount
+
+# Function to remove user from workspace
+function Remove-UserFromWorkspace {
+    param (
+        [string]$workspaceId,
+        [string]$userPrincipalName
+    )
+
+    try {
+        
+        Remove-PowerBIWorkspaceUser -Scope Organization -WorkspaceId $workspaceId -UserPrincipalName $userPrincipalName
+        Write-Host "Removed user $userPrincipalName from workspace $workspaceId"
+        
+    }
+    catch {
+        Write-Host "Error removing user $userPrincipalName from workspace $workspaceId  $_"
+    }
+}
+
+# Get the current user's email
+$currentPrincipalName = "user@domain.com"
+
+# Get all workspaces where the current user is an admin
+$workspaces = Get-PowerBIWorkspace -Scope Organization -All | Where-Object { $_.Users.UserPrincipalName -contains $currentPrincipalName -and $_.Users.AccessRight -eq "Admin" -and $_.Type -eq "Workspace"}
+
+# Remove the current user from each workspace
+foreach ($workspace in $workspaces) {
+    $Name = $workspace.Name
+    Write-Host "Removing user $userPrincipalName from workspace $Name ..."
+    Start-sleep -seconds 15
+    Remove-UserFromWorkspace -workspaceId $workspace.Id -userPrincipalName $currentPrincipalName
+}
+
+Write-Host "Process completed."
